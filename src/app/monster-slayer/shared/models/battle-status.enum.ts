@@ -1,0 +1,7 @@
+export enum BattleStatus {
+  SLAYERING = 'SLAYERING',
+  VICTORY = 'VICTORY',
+  DRAW = 'DRAW',
+  DEFEAT = 'DEFEAT',
+  SURRENDER = 'SURRENDER'
+}
