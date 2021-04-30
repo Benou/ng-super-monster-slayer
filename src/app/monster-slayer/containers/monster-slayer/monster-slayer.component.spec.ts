@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 
 import { MonsterSlayerComponent } from './monster-slayer.component';
 
@@ -7,7 +8,10 @@ describe('MonsterSlayerComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [MonsterSlayerComponent]
+      providers: [
+        MonsterSlayerComponent,
+        provideMockStore({})
+      ]
     });
 
     component = TestBed.inject(MonsterSlayerComponent);

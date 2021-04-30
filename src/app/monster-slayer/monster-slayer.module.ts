@@ -5,14 +5,15 @@ import { EffectsModule } from '@ngrx/effects';
 
 import { MonsterSlayerRoutingModule } from './monster-slayer-routing.module';
 import { MonsterSlayerComponent } from './containers';
-import { SlayerActionsComponent } from './components';
+import { SlayerActionsComponent, BattleLogsComponent } from './components';
 import { MonsterSlayerEffects } from './shared/store/effects';
 import * as MonsterSlayerReducer from './shared/store/reducer';
 
 @NgModule({
   declarations: [
     MonsterSlayerComponent,
-    SlayerActionsComponent
+    SlayerActionsComponent,
+    BattleLogsComponent
   ],
   imports: [
     CommonModule,

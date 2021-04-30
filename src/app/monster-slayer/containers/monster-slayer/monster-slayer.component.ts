@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
-import { SlayerAction, SlayerActionType, SlayerType } from '../../shared';
+import { BattleLog, SlayerAction, SlayerActionType, SlayerType } from '../../shared';
 import * as MonsterSlayerActions from '../../shared/store/actions';
 import * as MonsterSlayerReducer from '../../shared/store/reducer';
 import * as MonsterSlayerSelectors from '../../shared/store/selectors';
@@ -14,9 +14,11 @@ import * as MonsterSlayerSelectors from '../../shared/store/selectors';
 })
 export class MonsterSlayerComponent implements OnInit {
   actions$: Observable<SlayerAction[]>;
+  logs$: Observable<BattleLog[]>;
 
   constructor(private store: Store<MonsterSlayerReducer.State>) {
     this.actions$ = this.store.select(MonsterSlayerSelectors.selectActions);
+    this.logs$ = this.store.select(MonsterSlayerSelectors.selectLogs);
   }
 
   ngOnInit(): void {

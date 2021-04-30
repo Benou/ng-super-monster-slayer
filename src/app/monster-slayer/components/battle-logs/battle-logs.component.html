@@ -1,0 +1,11 @@
+<ul>
+  <li *ngFor="let item of items">
+    <span i18n>
+      {item.actionType, select,
+      attack {<strong>{{item.slayerType}}</strong> attacks and deals {{item.value}} }
+      specialAttack {<strong>{{item.slayerType}}</strong> attacks and deals {{item.value}} }
+      heal {<strong>{{item.slayerType}}</strong> heals himself for {{item.value}} }
+      surrender {<strong>{{item.slayerType}}</strong> surrenders...}}
+    </span>
+  </li>
+</ul>
