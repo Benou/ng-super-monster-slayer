@@ -68,7 +68,7 @@ export class MonsterSlayerService {
   getActionsFromSlayer(hero: Hero): SlayerAction[] {
     return slayerActions.map((action: SlayerAction): SlayerAction =>
       action.type === SlayerActionType.SPECIAL_ATTACK ?
-        { ...action, disabled: (hero.cooldown % hero.maxCooldown === 0) } :
+        { ...action, disabled: !hero.cooldown || hero.cooldown % hero.maxCooldown !== 0 } :
         { ...action }
     );
   }

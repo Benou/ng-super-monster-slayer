@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { ROUTER_NAVIGATION } from '@ngrx/router-store';
+import { Store } from '@ngrx/store';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { concatMap, filter, map, withLatestFrom } from 'rxjs/operators';
+import { concatMap, distinctUntilChanged, map, tap, withLatestFrom } from 'rxjs/operators';
 
-import { opponentTypes, Hero, SlayerType, SlayerActionType } from '../models';
+import { opponentTypes, SlayerType, SlayerActionType } from '../models';
 import { MonsterSlayerService } from '../services/monster-slayer.service';
 import * as MonsterSlayerActions from './actions';
 import * as MonsterSlayerReducer from './reducer';
@@ -13,24 +12,10 @@ import * as MonsterSlayerSelectors from './selectors';
 @Injectable()
 export class MonsterSlayerEffects {
 
-  battleStarted$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ROUTER_NAVIGATION),
-      filter((action: any) => action.payload.event.url === '/monster-slayer'),
-      withLatestFrom(this.store.pipe(select(MonsterSlayerSelectors.selectHero))),
-      map(([_, hero]) =>
-        MonsterSlayerActions.setActions({ actions: this.monsterSlayerService.getActionsFromSlayer(hero) })
-      )
-    )
-  );
-
   attacks$ = createEffect(() =>
     this.actions$.pipe(
       ofType(MonsterSlayerActions.attack, MonsterSlayerActions.specialAttack),
-      map(action =>
-        action.type === MonsterSlayerActions.attack.type ? action : { ...action, slayerType: SlayerType.HERO }
-      ),
-      withLatestFrom(this.store.pipe(select(MonsterSlayerSelectors.selectSlayers))),
+      withLatestFrom(this.store.select(MonsterSlayerSelectors.selectSlayers)),
       map(([{ type, slayerType }, slayers]) =>
         MonsterSlayerActions.actionDone({
           result: this.monsterSlayerService.attack(
@@ -53,7 +38,7 @@ export class MonsterSlayerEffects {
   heal$ = createEffect(() =>
     this.actions$.pipe(
       ofType(MonsterSlayerActions.heal),
-      withLatestFrom(this.store.pipe(select(MonsterSlayerSelectors.selectHero))),
+      withLatestFrom(this.store.select(MonsterSlayerSelectors.selectHero)),
       map(([_, hero]) => MonsterSlayerActions.actionDone({ result: this.monsterSlayerService.heal(hero) }))
     )
   );
@@ -67,7 +52,7 @@ export class MonsterSlayerEffects {
     )
   );
 
-  actionDone$ = createEffect(() =>
+  slayerActionDone$ = createEffect(() =>
     this.actions$.pipe(
       ofType(MonsterSlayerActions.actionDone),
       map(action => action.result),
@@ -82,11 +67,41 @@ export class MonsterSlayerEffects {
   nextRound$ = createEffect(() =>
     this.actions$.pipe(
       ofType(MonsterSlayerActions.nextRound),
-      withLatestFrom(this.store.pipe(select(MonsterSlayerSelectors.selectSlayers))),
-      concatMap(([_, { hero, monster }]) => [
-        MonsterSlayerActions.setCooldown({ cooldown: this.monsterSlayerService.getCooldownAfterRound(hero as Hero) }),
-        MonsterSlayerActions.setStatus({ status: this.monsterSlayerService.getStatusFromSlayers(hero, monster) })
-      ])
+      withLatestFrom(
+        this.store.select(MonsterSlayerSelectors.selectSlayers),
+        this.store.select(MonsterSlayerSelectors.selectStatus)
+      ),
+      tap(([_, { hero, monster }, status]) => {
+        if (hero.cooldown < hero.maxCooldown) {
+          this.store.dispatch(
+            MonsterSlayerActions.setCooldown({ cooldown: this.monsterSlayerService.getCooldownAfterRound(hero) })
+          );
+        }
+        const newStatus = this.monsterSlayerService.getStatusFromSlayers(hero, monster);
+        if (status !== newStatus) {
+          this.store.dispatch(MonsterSlayerActions.setStatus({ status: newStatus }));
+        }
+      })
+    )
+  , { dispatch: false });
+
+  setCooldown$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(MonsterSlayerActions.setCooldown),
+      withLatestFrom(this.store.select(MonsterSlayerSelectors.selectHero)),
+      map(([{ cooldown }, hero]) => !hero.cooldown || cooldown % hero.maxCooldown === 0),
+      distinctUntilChanged(),
+      map(() => MonsterSlayerActions.getActions())
+    )
+  );
+
+  getSlayerActions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(MonsterSlayerActions.getActions),
+      withLatestFrom(this.store.select(MonsterSlayerSelectors.selectHero)),
+      map(([_, hero]) =>
+        MonsterSlayerActions.setActions({ actions: this.monsterSlayerService.getActionsFromSlayer(hero) })
+      )
     )
   );
 

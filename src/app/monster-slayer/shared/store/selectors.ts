@@ -10,8 +10,10 @@ export const selectMonster = createSelector(monsterSlayerState, MonsterSlayerRed
 
 export const selectSlayers = createSelector(selectHero, selectMonster, MonsterSlayerReducer.getSlayers);
 
+export const selectActions = createSelector(monsterSlayerState, MonsterSlayerReducer.getActions);
+
 export const selectStatus = createSelector(monsterSlayerState, MonsterSlayerReducer.getStatus);
 
-export const selectRound = createSelector(monsterSlayerState, MonsterSlayerReducer.getRound);
-
 export const selectLogs = createSelector(monsterSlayerState, MonsterSlayerReducer.getLogs);
+
+export const selectRound = createSelector(monsterSlayerState, MonsterSlayerReducer.getRound);

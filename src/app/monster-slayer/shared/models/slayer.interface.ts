@@ -13,4 +13,4 @@ export interface Hero extends Slayer {
   maxCooldown: number;
 }
 
-export type Slayers = Record<SlayerType, Slayer>;
+export type Slayers = { hero: Hero, monster: Slayer };
