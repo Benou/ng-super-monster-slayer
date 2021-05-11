@@ -5,12 +5,9 @@ export interface Slayer {
   health: number;
   maxHealth: number;
   damages: [number, number];
+  healing?: [number, number];
+  cooldown?: number;
+  maxCooldown?: number;
 }
 
-export interface Hero extends Slayer {
-  healing: [number, number];
-  cooldown: number;
-  maxCooldown: number;
-}
-
-export type Slayers = { hero: Hero, monster: Slayer };
+export type Slayers = { hero: Required<Slayer>, monster: Slayer };

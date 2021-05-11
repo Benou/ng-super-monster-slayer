@@ -1,10 +1,10 @@
 import { createReducer, on } from '@ngrx/store';
 
-import { BattleLog, BattleStatus, Hero, Slayer, SlayerAction, Slayers, SlayerType } from '../../shared';
+import { BattleLog, BattleStatus, Slayer, SlayerAction, SlayerActionType, Slayers, SlayerType } from '../../shared';
 import * as MonsterSlayerActions from './actions';
 
 export interface State {
-  hero: Hero;
+  hero: Required<Slayer>;
   monster: Slayer;
   actions: SlayerAction[];
   status: BattleStatus;
@@ -34,25 +34,34 @@ export const initialState: State = {
   round: 1
 };
 
+function setSpecialAttackState(actions: SlayerAction[], disabled: boolean): SlayerAction[] {
+  return (actions || []).map(action =>
+    action.type === SlayerActionType.SPECIAL_ATTACK ? { ...action, disabled } : action
+  );
+}
+
 export const reducer = createReducer(
   initialState,
-  on(MonsterSlayerActions.setCooldown, (state, { cooldown }) =>
-    ({ ...state, [SlayerType.HERO]: { ...state[SlayerType.HERO], cooldown } })
+  on(MonsterSlayerActions.setSlayerActions, (state, { actions }) => ({ ...state, actions })),
+  on(MonsterSlayerActions.setCooldown, (state, { slayerType, cooldown }) =>
+    ({ ...state, [slayerType]: { ...state[slayerType], cooldown } })
+  ),
+  on(MonsterSlayerActions.setSpecialAttackState, (state, { disabled }) =>
+    ({ ...state, actions: setSpecialAttackState(state.actions, disabled) })
   ),
   on(MonsterSlayerActions.setHealth, (state, { slayerType, health }) =>
     ({ ...state, [slayerType]: { ...state[slayerType], health } })
   ),
-  on(MonsterSlayerActions.surrender, state => ({ ...state, battleStatus: BattleStatus.SURRENDER })),
-  on(MonsterSlayerActions.setActions, (state, { actions }) => ({ ...state, actions })),
-  on(MonsterSlayerActions.setStatus, (state, { status }) => ({ ...state, status })),
-  on(MonsterSlayerActions.log, (state, { log }) => ({ ...state, logs: [log, ...state.logs] })),
+  on(MonsterSlayerActions.surrender, state => ({ ...state, status: BattleStatus.SURRENDER })),
+  on(MonsterSlayerActions.setBattleStatus, (state, { status }) => ({ ...state, status })),
+  on(MonsterSlayerActions.addBattleLog, (state, { log }) => ({ ...state, logs: [log, ...state.logs] })),
   on(MonsterSlayerActions.nextRound, state => ({ ...state, round: state.round + 1 }))
 );
 
-export const getHero = (state: State): Hero => state.hero;
+export const getHero = (state: State): Required<Slayer> => state.hero;
 export const getMonster = (state: State): Slayer => state.monster;
-export const getSlayers = (hero: Hero, monster: Slayer): Slayers => ({ hero, monster });
-export const getActions = (state: State): SlayerAction[] => state.actions;
-export const getStatus = (state: State): BattleStatus => state.status;
-export const getLogs = (state: State): BattleLog[] => state.logs;
+export const getSlayers = (hero: Required<Slayer>, monster: Slayer): Slayers => ({ hero, monster });
+export const getSlayerActions = (state: State): SlayerAction[] => state.actions;
+export const getBattleStatus = (state: State): BattleStatus => state.status;
+export const getBattleLogs = (state: State): BattleLog[] => state.logs;
 export const getRound = (state: State): number => state.round;

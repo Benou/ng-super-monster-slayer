@@ -1,7 +1,7 @@
 <button
   [disabled]="item.disabled"
   (click)="emitAction(item.type)"
-  *ngFor="let item of items; trackBy: trackActions">
+  *ngFor="let item of actions; trackBy: trackActions">
   <span i18n>
     {item.type, select,
     attack {Attack}

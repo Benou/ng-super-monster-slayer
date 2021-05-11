@@ -9,11 +9,11 @@ import { SlayerAction, SlayerActionType } from '../../shared';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SlayerActionsComponent {
-  @Input() items: SlayerAction[] | null;
+  @Input() actions: SlayerAction[] | null;
   @Output() action: EventEmitter<SlayerActionType>;
 
   constructor() {
-    this.items = null;
+    this.actions = null;
     this.action = new EventEmitter<SlayerActionType>();
   }
 

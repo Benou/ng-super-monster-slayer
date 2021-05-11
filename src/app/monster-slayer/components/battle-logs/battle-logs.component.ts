@@ -1,15 +1,17 @@
-import { Component, Input } from '@angular/core';
-import { BattleLog } from '../../shared/models/battle-log.interface';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+
+import { BattleLog } from '../../shared';
 
 @Component({
   selector: 'app-battle-logs',
   templateUrl: './battle-logs.component.html',
-  styleUrls: ['./battle-logs.component.scss']
+  styleUrls: ['./battle-logs.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BattleLogsComponent {
-  @Input() items: BattleLog[] | null;
+  @Input() logs: BattleLog[] | null;
 
   constructor() {
-    this.items = null;
+    this.logs = null;
   }
 }

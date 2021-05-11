@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { BattleStatus, Hero, Slayer, SlayerAction, slayerActions, SlayerActionResult, SlayerActionType, SlayerType } from '../models';
+import { BattleStatus, Slayer, SlayerAction, SlayerActionType } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,37 +9,51 @@ export class MonsterSlayerService {
 
   constructor() {}
 
-  attack(slayer: Slayer, opponent: Slayer, special: boolean = false): SlayerActionResult {
+  getSlayerActions(): SlayerAction[] {
+    return [
+      {
+        type: SlayerActionType.ATTACK,
+        disabled: false
+      },
+      {
+        type: SlayerActionType.SPECIAL_ATTACK,
+        disabled: false
+      },
+      {
+        type: SlayerActionType.HEAL,
+        disabled: false
+      },
+      {
+        type: SlayerActionType.SURRENDER,
+        disabled: false
+      }
+    ];
+  }
+
+  attack(slayer: Slayer, opponent: Slayer, special: boolean = false): [number, number] {
     const damages = this.randomizeDamages(slayer, special);
-    const opponentHealth = this.getHealthAfterDamages(opponent, damages);
-    const actionType = special ? SlayerActionType.SPECIAL_ATTACK : SlayerActionType.ATTACK;
-    return this.mapActionResult(actionType, slayer.type, opponent.type, opponentHealth, damages);
+    const health = this.adjustHealth(opponent, -1 * damages);
+    return [damages, health];
   }
 
-  heal(hero: Hero): SlayerActionResult {
-    const healing = this.randomizeHealing(hero);
-    const heroHealth = this.getHealthAfterHealing(hero, healing);
-    return this.mapActionResult(SlayerActionType.HEAL, hero.type, hero.type, heroHealth, healing);
+  specialAttack(slayer: Slayer, opponent: Slayer): [number, number] {
+    return this.attack(slayer, opponent, true);
   }
 
-  mapActionResult(
-    actionType: SlayerActionType,
-    slayerType: SlayerType,
-    targetType: SlayerType,
-    targetHealth: Slayer['health'],
-    value: number
-  ): SlayerActionResult {
-    return { actionType, slayerType, targetType, targetHealth, value, counterAttack: slayerType === SlayerType.HERO };
+  heal(slayer: Slayer): [number, number] {
+    const healing = this.randomizeHealing(slayer as Required<Slayer>);
+    const health = this.adjustHealth(slayer, healing);
+    return [healing, health];
   }
 
-  randomizeDamages(slayer: Slayer, power: boolean = false): number {
+  randomizeDamages(slayer: Slayer, special: boolean = false): number {
     return this.randomize(
-      ...(power ? slayer.damages.map(value => value * 2) as [number, number] : slayer.damages)
+      ...(special ? slayer.damages.map(value => value * 2) as [number, number] : slayer.damages)
     );
   }
 
-  randomizeHealing(hero: Hero): number {
-    return this.randomize(...hero.healing);
+  randomizeHealing(slayer: Required<Slayer>): number {
+    return this.randomize(...slayer.healing);
   }
 
   randomize(min: number, max: number): number {
@@ -48,12 +62,12 @@ export class MonsterSlayerService {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  getHealthAfterDamages(slayer: Slayer, damages: number): Slayer['health'] {
-    return Math.max(0, slayer.health - damages);
+  adjustHealth(slayer: Slayer, delta: number): number {
+    return Math.max(0, Math.min(slayer.health + delta, slayer.maxHealth));
   }
 
-  getHealthAfterHealing(slayer: Slayer, healing: number): Slayer['health'] {
-    return Math.min(slayer.health + healing, slayer.maxHealth);
+  adjustCooldown(slayer: Required<Slayer>, delta: number = 1): number {
+    return Math.max(0, Math.min(slayer.cooldown + delta, slayer.maxCooldown));
   }
 
   getStatusFromSlayers(hero: Slayer, monster: Slayer): BattleStatus {
@@ -65,15 +79,15 @@ export class MonsterSlayerService {
     return isHeroDead && isMonsterDead ? BattleStatus.DRAW : isMonsterDead ? BattleStatus.VICTORY : BattleStatus.DEFEAT;
   }
 
-  getActionsFromSlayer(hero: Hero): SlayerAction[] {
-    return slayerActions.map((action: SlayerAction): SlayerAction =>
-      action.type === SlayerActionType.SPECIAL_ATTACK ?
-        { ...action, disabled: !hero.cooldown || hero.cooldown % hero.maxCooldown !== 0 } :
-        { ...action }
-    );
+  hasCooldown(slayer: Slayer): boolean {
+    return slayer.cooldown !== undefined;
   }
 
-  getCooldownAfterRound(hero: Hero): Hero['cooldown'] {
-    return Math.min(hero.cooldown + 1, hero.maxCooldown);
+  isCooldownFinished(slayer: Required<Slayer>): boolean {
+    return slayer.cooldown === slayer.maxCooldown;
+  }
+
+  isWaitingForCooldown(slayer: Slayer): boolean {
+    return this.hasCooldown(slayer) && !this.isCooldownFinished(slayer as Required<Slayer>);
   }
 }

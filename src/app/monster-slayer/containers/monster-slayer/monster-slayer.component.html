@@ -1,2 +1,3 @@
-<app-slayer-actions [items]="actions$ | async" (action)="dispatchAction($event)"></app-slayer-actions>
-<app-battle-logs [items]="logs$ | async"></app-battle-logs>
+<app-slayer-arena [slayers]="slayers$ | async"></app-slayer-arena>
+<app-slayer-actions [actions]="slayerActions$ | async" (action)="dispatchSlayerAction($event)"></app-slayer-actions>
+<app-battle-logs [logs]="battleLogs$ | async"></app-battle-logs>
